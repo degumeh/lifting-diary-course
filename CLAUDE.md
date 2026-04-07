@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - /docs/ui.md
 - /docs/data-fetching.md
+- /docs/data-mutations.md
+- /docs/auth.md
 
 ## Commands
 
@@ -22,7 +24,7 @@ No test framework is configured yet.
 ## Git Workflow
 
 - **Commit regularly** after meaningful changes. Use concise, imperative commit messages (e.g. `feat: add workout list page`, `fix: correct set weight calculation`).
-- **Push after each commit** to keep the remote in sync: `git push`
+- **Do NOT push to GitHub** unless explicitly asked. The user will say when to push.
 - Remote: `https://github.com/degumeh/lifting-diary-course` (branch: `main`)
 - Prefix commit messages with a type: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`
 
