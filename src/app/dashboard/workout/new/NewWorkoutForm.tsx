@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function NewWorkoutForm() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -25,6 +27,7 @@ export function NewWorkoutForm() {
 
   async function onSubmit(values: FormValues) {
     await createWorkoutAction(values);
+    router.push("/dashboard");
   }
 
   return (
