@@ -1,48 +1,24 @@
-"use client";
-
-import { useState } from "react";
+import { auth } from "@clerk/nextjs/server";
 import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "./DatePicker";
+import { getWorkoutsForUserOnDate } from "@/data/workouts";
 
-// Placeholder workout data — replace with real data fetching later
-const MOCK_WORKOUTS = [
-  {
-    id: "1",
-    name: "Morning Push",
-    date: new Date(2026, 3, 6),
-    exercises: [
-      { name: "Bench Press", sets: 4, reps: 8, weight: 80 },
-      { name: "Overhead Press", sets: 3, reps: 10, weight: 50 },
-      { name: "Tricep Dips", sets: 3, reps: 12, weight: 0 },
-    ],
-  },
-  {
-    id: "2",
-    name: "Evening Accessory",
-    date: new Date(2026, 3, 6),
-    exercises: [
-      { name: "Lateral Raises", sets: 4, reps: 15, weight: 12 },
-      { name: "Cable Flyes", sets: 3, reps: 12, weight: 20 },
-    ],
-  },
-];
-
-function isSameDay(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+interface DashboardPageProps {
+  searchParams: Promise<{ date?: string }>;
 }
 
-export default function DashboardPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const { userId } = await auth();
+  const { date: dateParam } = await searchParams;
 
-  const workoutsForDate = MOCK_WORKOUTS.filter((w) =>
-    isSameDay(w.date, selectedDate)
-  );
+  const selectedDate = dateParam ? new Date(dateParam + "T00:00:00") : new Date();
+  selectedDate.setHours(0, 0, 0, 0);
+
+  const workoutList = userId
+    ? await getWorkoutsForUserOnDate(userId, selectedDate)
+    : [];
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -50,56 +26,52 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start">
-          {/* Date Picker */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Select Date</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 pb-4 flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-              />
-            </CardContent>
-          </Card>
+          <DatePicker selectedDate={selectedDate} />
 
-          {/* Workout List */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <h2 className="text-xl font-semibold">
                 {format(selectedDate, "do MMM yyyy")}
               </h2>
               <Badge variant="secondary">
-                {workoutsForDate.length}{" "}
-                {workoutsForDate.length === 1 ? "workout" : "workouts"}
+                {workoutList.length}{" "}
+                {workoutList.length === 1 ? "workout" : "workouts"}
               </Badge>
             </div>
 
-            {workoutsForDate.length === 0 ? (
+            {workoutList.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   No workouts logged for this date.
                 </CardContent>
               </Card>
             ) : (
-              workoutsForDate.map((workout) => (
+              workoutList.map((workout) => (
                 <Card key={workout.id}>
                   <CardHeader>
                     <CardTitle className="text-base">{workout.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="divide-y">
-                      {workout.exercises.map((exercise, i) => (
+                      {workout.exercises.map((exercise) => (
                         <div
-                          key={i}
-                          className="flex items-center justify-between py-2 text-sm"
+                          key={exercise.id}
+                          className="py-2 text-sm space-y-1"
                         >
                           <span className="font-medium">{exercise.name}</span>
-                          <span className="text-muted-foreground">
-                            {exercise.sets} × {exercise.reps}
-                            {exercise.weight > 0 ? ` @ ${exercise.weight}kg` : ""}
-                          </span>
+                          {exercise.sets.length > 0 && (
+                            <div className="text-muted-foreground space-y-0.5">
+                              {exercise.sets.map((set) => (
+                                <div key={set.id} className="flex justify-between">
+                                  <span>Set {set.setNumber}</span>
+                                  <span>
+                                    {set.reps != null ? `${set.reps} reps` : "—"}
+                                    {set.weight ? ` @ ${set.weight}kg` : ""}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
