@@ -12,6 +12,13 @@ npm run lint     # Run ESLint
 
 No test framework is configured yet.
 
+## Git Workflow
+
+- **Commit regularly** after meaningful changes. Use concise, imperative commit messages (e.g. `feat: add workout list page`, `fix: correct set weight calculation`).
+- **Push after each commit** to keep the remote in sync: `git push`
+- Remote: `https://github.com/degumeh/lifting-diary-course` (branch: `main`)
+- Prefix commit messages with a type: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`
+
 ## Architecture
 
 This is a Next.js 16 app using the App Router (`src/app/`), React 19, TypeScript, and Tailwind CSS v4.
