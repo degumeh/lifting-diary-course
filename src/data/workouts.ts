@@ -74,6 +74,19 @@ export async function getWorkoutById(userId: string, workoutId: string) {
   };
 }
 
+export async function updateWorkout(
+  userId: string,
+  workoutId: string,
+  data: { name: string; startedAt: Date | null }
+) {
+  const [workout] = await db
+    .update(workouts)
+    .set({ name: data.name, startedAt: data.startedAt })
+    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)))
+    .returning();
+  return workout;
+}
+
 export async function getWorkoutsForUserOnDate(userId: string, date: Date) {
   const startOfDay = new Date(date);
   startOfDay.setHours(0, 0, 0, 0);
