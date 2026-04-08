@@ -38,7 +38,7 @@ export default function RootLayout({
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="px-4 py-2 text-sm font-medium bg-black text-white rounded-lg hover:bg-gray-800">
+                <button className="ml-2 px-4 py-2 text-sm font-medium bg-black text-white rounded-lg hover:bg-gray-800">
                   Sign Up
                 </button>
               </SignUpButton>
