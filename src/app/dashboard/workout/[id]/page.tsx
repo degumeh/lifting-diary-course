@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getWorkoutById } from "@/data/workouts";
+import { EditWorkoutForm } from "./EditWorkoutForm";
 
 interface WorkoutPageProps {
   params: Promise<{ id: string }>;
@@ -30,8 +32,28 @@ export default async function WorkoutPage({ params }: WorkoutPageProps) {
           <Button asChild variant="outline" size="sm">
             <Link href="/dashboard">← Back</Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{workout.name}</h1>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{workout.name}</h1>
+            {workout.startedAt && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Started: {format(workout.startedAt, "PPp")}
+              </p>
+            )}
+          </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Edit Workout</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditWorkoutForm
+              workoutId={workout.id}
+              defaultName={workout.name}
+              defaultStartedAt={workout.startedAt}
+            />
+          </CardContent>
+        </Card>
 
         {workout.exercises.length === 0 ? (
           <Card>
