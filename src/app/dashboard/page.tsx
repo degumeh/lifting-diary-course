@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DatePicker } from "./DatePicker";
 import { getWorkoutsForUserOnDate } from "@/data/workouts";
 
@@ -44,8 +45,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
             {workoutList.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  No workouts logged for this date.
+                <CardContent className="py-12 flex flex-col items-center gap-4 text-center text-muted-foreground">
+                  <p>No workouts logged for this date.</p>
+                  <Button asChild>
+                    <Link href={`/dashboard/workout/new?date=${selectedDateIso}`}>
+                      Log New Workout
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ) : (

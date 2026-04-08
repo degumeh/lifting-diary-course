@@ -15,7 +15,11 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function NewWorkoutForm() {
+interface NewWorkoutFormProps {
+  returnDate?: string;
+}
+
+export function NewWorkoutForm({ returnDate }: NewWorkoutFormProps) {
   const router = useRouter();
   const {
     register,
@@ -27,7 +31,7 @@ export function NewWorkoutForm() {
 
   async function onSubmit(values: FormValues) {
     await createWorkoutAction(values);
-    router.push("/dashboard");
+    router.push(returnDate ? `/dashboard?date=${returnDate}` : "/dashboard");
   }
 
   return (
