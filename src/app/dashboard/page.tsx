@@ -14,7 +14,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { userId } = await auth();
   const { date: dateParam } = await searchParams;
 
-  const selectedDate = dateParam ? new Date(dateParam + "T00:00:00") : new Date();
+  const todayIso = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD" in local time
+  const selectedDateIso = dateParam ?? todayIso;
+  const selectedDate = new Date(selectedDateIso + "T00:00:00");
   selectedDate.setHours(0, 0, 0, 0);
 
   const workoutList = userId
@@ -27,7 +29,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start">
-          <DatePicker selectedDate={selectedDate} />
+          <DatePicker selectedDate={selectedDateIso} />
 
           <div className="space-y-4">
             <div className="flex items-center gap-3">
