@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { format } from "date-fns";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "./DatePicker";
@@ -47,36 +48,38 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               </Card>
             ) : (
               workoutList.map((workout) => (
-                <Card key={workout.id}>
-                  <CardHeader>
-                    <CardTitle className="text-base">{workout.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="divide-y">
-                      {workout.exercises.map((exercise) => (
-                        <div
-                          key={exercise.id}
-                          className="py-2 text-sm space-y-1"
-                        >
-                          <span className="font-medium">{exercise.name}</span>
-                          {exercise.sets.length > 0 && (
-                            <div className="text-muted-foreground space-y-0.5">
-                              {exercise.sets.map((set) => (
-                                <div key={set.id} className="flex justify-between">
-                                  <span>Set {set.setNumber}</span>
-                                  <span>
-                                    {set.reps != null ? `${set.reps} reps` : "—"}
-                                    {set.weight ? ` @ ${set.weight}kg` : ""}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link key={workout.id} href={`/dashboard/workout/${workout.id}`}>
+                  <Card className="hover:bg-accent transition-colors cursor-pointer">
+                    <CardHeader>
+                      <CardTitle className="text-base">{workout.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="divide-y">
+                        {workout.exercises.map((exercise) => (
+                          <div
+                            key={exercise.id}
+                            className="py-2 text-sm space-y-1"
+                          >
+                            <span className="font-medium">{exercise.name}</span>
+                            {exercise.sets.length > 0 && (
+                              <div className="text-muted-foreground space-y-0.5">
+                                {exercise.sets.map((set) => (
+                                  <div key={set.id} className="flex justify-between">
+                                    <span>Set {set.setNumber}</span>
+                                    <span>
+                                      {set.reps != null ? `${set.reps} reps` : "—"}
+                                      {set.weight ? ` @ ${set.weight}kg` : ""}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))
             )}
           </div>
