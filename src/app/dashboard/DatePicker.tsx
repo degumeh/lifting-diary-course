@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 interface DatePickerProps {
   selectedDate: string; // ISO date string like "2026-04-15"
@@ -10,8 +14,8 @@ interface DatePickerProps {
 
 export function DatePicker({ selectedDate }: DatePickerProps) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
-  // Construct date in the browser's local timezone to avoid UTC offset issues
   const [year, month, day] = selectedDate.split("-").map(Number);
   const localDate = new Date(year, month - 1, day);
 
@@ -24,20 +28,24 @@ export function DatePicker({ selectedDate }: DatePickerProps) {
     ].join("-");
     router.push(`/dashboard?date=${iso}`);
     router.refresh();
+    setOpen(false);
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Select Date</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 pb-4 flex justify-center">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="gap-2">
+          <CalendarIcon className="size-4" />
+          {format(localDate, "do MMM yyyy")}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-auto">
         <Calendar
           mode="single"
           selected={localDate}
           onSelect={handleSelect}
         />
-      </CardContent>
-    </Card>
+      </PopoverContent>
+    </Popover>
   );
 }

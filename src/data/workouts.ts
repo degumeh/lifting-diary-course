@@ -1,11 +1,11 @@
 import { db } from "@/db";
 import { workouts, workoutExercises, exercises, sets } from "@/db/schema";
-import { eq, and, gte, lt } from "drizzle-orm";
+import { eq, and, gte, lt, count, max } from "drizzle-orm";
 
-export async function createWorkout(userId: string, name: string) {
+export async function createWorkout(userId: string, name: string, startedAt?: Date) {
   const [workout] = await db
     .insert(workouts)
-    .values({ userId, name, startedAt: new Date() })
+    .values({ userId, name, startedAt: startedAt ?? new Date() })
     .returning();
   return workout;
 }
@@ -87,12 +87,92 @@ export async function updateWorkout(
   return workout;
 }
 
-export async function getWorkoutsForUserOnDate(userId: string, date: Date) {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
+export async function addExerciseToWorkout(userId: string, workoutId: string, exerciseId: string) {
+  // Verify ownership
+  const workout = await db.select({ id: workouts.id }).from(workouts)
+    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)))
+    .limit(1);
+  if (workout.length === 0) throw new Error("Workout not found");
 
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  // Get next order
+  const [{ maxOrder }] = await db
+    .select({ maxOrder: max(workoutExercises.order) })
+    .from(workoutExercises)
+    .where(eq(workoutExercises.workoutId, workoutId));
+  const nextOrder = (maxOrder ?? -1) + 1;
+
+  const [newWE] = await db
+    .insert(workoutExercises)
+    .values({ workoutId, exerciseId, order: nextOrder })
+    .returning();
+
+  const [exercise] = await db
+    .select({ id: exercises.id, name: exercises.name })
+    .from(exercises)
+    .where(eq(exercises.id, exerciseId));
+
+  return { id: newWE.id, exerciseId: newWE.exerciseId, order: newWE.order, name: exercise.name, sets: [] as { id: string; setNumber: number; reps: number | null; weight: string | null }[] };
+}
+
+export async function removeExerciseFromWorkout(userId: string, workoutExerciseId: string) {
+  // Only delete if the parent workout belongs to userId
+  const owned = await db
+    .select({ id: workoutExercises.id })
+    .from(workoutExercises)
+    .innerJoin(workouts, eq(workouts.id, workoutExercises.workoutId))
+    .where(and(eq(workoutExercises.id, workoutExerciseId), eq(workouts.userId, userId)))
+    .limit(1);
+  if (owned.length === 0) throw new Error("Not found");
+
+  await db.delete(workoutExercises).where(eq(workoutExercises.id, workoutExerciseId));
+}
+
+export async function addSet(
+  userId: string,
+  workoutExerciseId: string,
+  reps: number | null,
+  weight: string | null
+) {
+  // Verify ownership
+  const owned = await db
+    .select({ id: workoutExercises.id })
+    .from(workoutExercises)
+    .innerJoin(workouts, eq(workouts.id, workoutExercises.workoutId))
+    .where(and(eq(workoutExercises.id, workoutExerciseId), eq(workouts.userId, userId)))
+    .limit(1);
+  if (owned.length === 0) throw new Error("Not found");
+
+  const [{ setCount }] = await db
+    .select({ setCount: count() })
+    .from(sets)
+    .where(eq(sets.workoutExerciseId, workoutExerciseId));
+  const setNumber = setCount + 1;
+
+  const [newSet] = await db
+    .insert(sets)
+    .values({ workoutExerciseId, setNumber, reps, weight })
+    .returning();
+  return newSet;
+}
+
+export async function removeSet(userId: string, setId: string) {
+  // Verify ownership through workout_exercises → workouts
+  const owned = await db
+    .select({ id: sets.id })
+    .from(sets)
+    .innerJoin(workoutExercises, eq(workoutExercises.id, sets.workoutExerciseId))
+    .innerJoin(workouts, eq(workouts.id, workoutExercises.workoutId))
+    .where(and(eq(sets.id, setId), eq(workouts.userId, userId)))
+    .limit(1);
+  if (owned.length === 0) throw new Error("Not found");
+
+  await db.delete(sets).where(eq(sets.id, setId));
+}
+
+export async function getWorkoutsForUserOnDate(userId: string, dateIso: string) {
+  // Parse as UTC so server timezone never affects the day boundary
+  const startOfDay = new Date(`${dateIso}T00:00:00.000Z`);
+  const endOfDay = new Date(`${dateIso}T23:59:59.999Z`);
 
   const rows = await db
     .select({
@@ -114,8 +194,8 @@ export async function getWorkoutsForUserOnDate(userId: string, date: Date) {
     .where(
       and(
         eq(workouts.userId, userId),
-        gte(workouts.createdAt, startOfDay),
-        lt(workouts.createdAt, endOfDay)
+        gte(workouts.startedAt, startOfDay),
+        lt(workouts.startedAt, endOfDay)
       )
     )
     .orderBy(workoutExercises.order, sets.setNumber);

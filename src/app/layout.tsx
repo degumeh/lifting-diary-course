@@ -44,7 +44,9 @@ export default function RootLayout({
               </SignUpButton>
             </Show>
             <Show when="signed-in">
-              <UserButton />
+              <div suppressHydrationWarning>
+                <UserButton />
+              </div>
             </Show>
           </header>
           {children}
