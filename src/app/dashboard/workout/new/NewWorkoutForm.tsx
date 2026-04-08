@@ -30,11 +30,11 @@ export function NewWorkoutForm({ returnDate }: NewWorkoutFormProps) {
   });
 
   async function onSubmit(values: FormValues) {
-    await createWorkoutAction({
+    const workout = await createWorkoutAction({
       ...values,
       startedAt: returnDate ? new Date(`${returnDate}T00:00:00.000Z`) : undefined,
     });
-    router.push(returnDate ? `/dashboard?date=${returnDate}` : "/dashboard");
+    router.push(`/dashboard/workout/${workout.id}`);
   }
 
   return (

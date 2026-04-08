@@ -169,6 +169,12 @@ export async function removeSet(userId: string, setId: string) {
   await db.delete(sets).where(eq(sets.id, setId));
 }
 
+export async function deleteWorkout(userId: string, workoutId: string) {
+  await db
+    .delete(workouts)
+    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)));
+}
+
 export async function getWorkoutsForUserOnDate(userId: string, dateIso: string) {
   // Parse as UTC so server timezone never affects the day boundary
   const startOfDay = new Date(`${dateIso}T00:00:00.000Z`);

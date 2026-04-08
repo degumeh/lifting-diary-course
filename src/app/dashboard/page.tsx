@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "./DatePicker";
 import { getWorkoutsForUserOnDate } from "@/data/workouts";
+import { WorkoutList } from "./WorkoutList";
 
 interface DashboardPageProps {
   searchParams: Promise<{ date?: string }>;
@@ -40,50 +41,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </Button>
           </div>
 
-          <div className="space-y-4">
-            {workoutList.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 flex flex-col items-center gap-4 text-center text-muted-foreground">
-                  <p>No workouts logged for this date.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              workoutList.map((workout) => (
-                <Link key={workout.id} href={`/dashboard/workout/${workout.id}`}>
-                  <Card className="hover:bg-accent transition-colors cursor-pointer">
-                    <CardHeader>
-                      <CardTitle className="text-base">{workout.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="divide-y">
-                        {workout.exercises.map((exercise) => (
-                          <div
-                            key={exercise.id}
-                            className="py-2 text-sm space-y-1"
-                          >
-                            <span className="font-medium">{exercise.name}</span>
-                            {exercise.sets.length > 0 && (
-                              <div className="text-muted-foreground space-y-0.5">
-                                {exercise.sets.map((set) => (
-                                  <div key={set.id} className="flex justify-between">
-                                    <span>Set {set.setNumber}</span>
-                                    <span>
-                                      {set.reps != null ? `${set.reps} reps` : "—"}
-                                      {set.weight ? ` @ ${set.weight}kg` : ""}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))
-            )}
-          </div>
+          <WorkoutList initialWorkouts={workoutList} />
         </div>
       </div>
     </div>
